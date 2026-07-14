@@ -1,4 +1,4 @@
-# Tripmate-ai
+# Trip-planner-ai
 
 ## How to run ?
 1. Create  a virtual  Enviroment 
