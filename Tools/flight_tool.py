@@ -487,3 +487,27 @@ def clean_text(text:str)->str:
     ]
     words=[w for  w in text.split() if w not in stop_words]
     return " ".join(words).strip()
+def country_name_to_code(text: str):
+    text = clean_text(text)
+
+    if text in COUNTRY_ALIASES:
+        return COUNTRY_ALIASES[text]
+
+    try:
+        country = pycountry.countries.lookup(text)
+        return country.alpha_2
+    except LookupError:
+        pass
+
+    # Detect country name inside longer text
+    for country in pycountry.countries:
+        country_name = country.name.lower()
+        if country_name in text:
+            return country.alpha_2
+
+    for alias, code in COUNTRY_ALIASES.items():
+        if alias in text:
+            return code
+
+    return None
+
