@@ -487,6 +487,7 @@ def clean_text(text:str)->str:
     ]
     words=[w for  w in text.split() if w not in stop_words]
     return " ".join(words).strip()
+
 def country_name_to_code(text: str):
     text = clean_text(text)
 
@@ -511,3 +512,51 @@ def country_name_to_code(text: str):
 
     return None
 
+def airport_country_matches(airport: dict, country_code: str) -> bool:
+    airport_country = str(airport.get("country", "")).upper().strip()
+
+    if airport_country == country_code:
+        return True
+
+    try:
+        country = pycountry.countries.get(alpha_2=country_code)
+        if country and airport_country.lower() == country.name.lower():
+            return True
+    except Exception:
+        pass
+
+    return False
+def get_best_airport_for_country(country_code: str):
+    preferred = COUNTRY_MAIN_AIRPORT.get(country_code)
+
+    if preferred and preferred in AIRPORTS:
+        return preferred
+
+    candidates = []
+
+    for iata, airport in AIRPORTS.items():
+        if not iata:
+            continue
+
+        if airport_country_matches(airport, country_code):
+            name = str(airport.get("name", "")).lower()
+            city = str(airport.get("city", "")).lower()
+
+            score = 0
+
+            if "international" in name:
+                score += 50
+            if "intl" in name:
+                score += 40
+            if "capital" in name:
+                score += 20
+            if city:
+                score += 5
+
+            candidates.append((score, iata))
+
+    if not candidates:
+        return None
+
+    candidates.sort(reverse=True)
+    return candidates[0][1]
